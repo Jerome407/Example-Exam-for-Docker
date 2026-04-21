@@ -1,0 +1,36 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:5000"
+    networks:
+      - app-network
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: cv_database
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d cv_database"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db_data:
+  
